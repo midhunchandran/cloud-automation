@@ -1,0 +1,63 @@
+require 'rubygems'
+require 'chef/config'
+require 'chef/log'
+require 'chef/rest'
+require 'optparse'
+
+options = {}
+ 
+opt_parser = OptionParser.new do |opt|
+  opt.banner = "Usage: set_db [OPTIONS]"
+  opt.separator  ""
+  opt.separator  "Options"
+
+  opt.on("-s","--site IP","site address") do |site|
+    options[:site] = site
+  end
+
+  opt.on("-d","--db DB_HOST ","database host name") do |db|
+    options[:db] = db
+  end
+
+  opt.on("-h","--help","help") do
+    puts opt_parser
+  end
+end
+
+opt_parser.parse!
+
+if options[:site] == nil
+  puts opt_parser
+  exit
+end 
+
+if options[:db] == nil
+  puts opt_parser
+  exit
+end 
+
+
+chef_server_url="https://api.opscode.com/organizations/" + ENV['ORGNAME']
+client_name = ENV['OPSCODE_USER']
+signing_key_filename= ENV['OPSCODE_USER_KEY_FILE']
+
+rest = Chef::REST.new(chef_server_url, client_name, signing_key_filename)
+clients_chef = rest.get_rest("/roles/wordpress-nodb")
+
+#clients = JSON.parse(clients_json);
+
+clients_chef.override_attributes["wordpress"]["db"] = { "host" => options[:db] }
+
+url = "http://" + options[:site]
+clients_chef.override_attributes["wordpress"]["siteurl"] = url
+clients_chef.override_attributes["wordpress"]["homeurl"] = url
+
+clients_json = clients_chef.to_json(clients_chef)
+
+clients_chef =  rest.put_rest("roles/wordpress-nodb", clients_chef)
+
+if clients_chef != nil then
+    puts "Updated role wordpress-nodb";
+else
+    puts "Update to role wordpress-nodb failed";
+end

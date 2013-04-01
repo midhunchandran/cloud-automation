@@ -1,0 +1,4 @@
+m1.small = 1.7 GiB memory, 1 EC2 Compute Unit, 160 GB instance storage
+m1.medium = 3.75 GiB memory, 2 EC2 Compute Unit, 410 GB instance storage
+m1.large = 7.5 GiB memory, 4 EC2 Compute Units, 850 GB instance storage
+t1.micro = 613 MiB memory, Up to 2 EC2 Compute Units, EBS storage only
